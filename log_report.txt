@@ -1,0 +1,68 @@
+file part 1 Armin Ilat speech.wav | fs=16000Hz | lenght=11.63s
+
+ part 2 Quantization yeknavakht
+  B=8: MSE=6.533e-06 | SQNR=32.15 dB
+  B=4: MSE=2.154e-03 | SQNR=6.96 dB
+  B=2: MSE=4.375e-02 | SQNR=-6.11 dB
+
+ part 2 Quantization Mu-Law (companding)
+  test of maakos paziri F^-1(F(x))≈x : OK (max_err=8.88e-16)
+
+    B |   SQNR Uniform(dB) |  SQNR mu-Law(dB) | difference
+    8 |              32.15 |            37.81 |     5.67
+    4 |               6.96 |            13.56 |     6.59
+    2 |              -6.11 |             2.52 |     8.64
+
+ Part 4 entekhab behtarin jaryan : B=8)
+  entekhabi : Mu-Law | B=8
+  test maakos paziri : OK
+  kol Bit ha : 1488216 | Rb = B*Fs = 128000 bit/s
+
+ part 5 Line Coding (Polar NRZ / Polar RZ / Manchester)
+  NRZ        : band width (-3dB) ≈ 0.750 x Rb | sefr teifi dar DC: yes
+  RZ         : band width (-3dB) ≈ 2.000 x Rb | sefr teifi dar DC: yes
+  MANCHESTER : band width (-3dB) ≈ 2.000 x Rb | sefr teifi dar DC: yes
+   BW(Manchester)/BW(RZ) ≈ 1.00  (expect ≈ 2)
+
+ part 6 , 7 channel AWGN , BER  moghabele Eb/N0
+  NRZ:
+     Eb/N0=  -5 dB | BER_sim=2.1426e-01 | BER_theory=2.1323e-01
+     Eb/N0=   0 dB | BER_sim=7.8580e-02 | BER_theory=7.8650e-02
+     Eb/N0=   5 dB | BER_sim=6.2100e-03 | BER_theory=5.9539e-03
+     Eb/N0=  10 dB | BER_sim=0.0000e+00 | BER_theory=3.8721e-06
+     Eb/N0=  15 dB | BER_sim=0.0000e+00 | BER_theory=9.1240e-16
+     Eb/N0=  20 dB | BER_sim=0.0000e+00 | BER_theory=1.0442e-45
+  RZ:
+     Eb/N0=  -5 dB | BER_sim=2.1237e-01 | BER_theory=2.1323e-01
+     Eb/N0=   0 dB | BER_sim=7.8560e-02 | BER_theory=7.8650e-02
+     Eb/N0=   5 dB | BER_sim=6.2700e-03 | BER_theory=5.9539e-03
+     Eb/N0=  10 dB | BER_sim=0.0000e+00 | BER_theory=3.8721e-06
+     Eb/N0=  15 dB | BER_sim=0.0000e+00 | BER_theory=9.1240e-16
+     Eb/N0=  20 dB | BER_sim=0.0000e+00 | BER_theory=1.0442e-45
+  MANCHESTER:
+     Eb/N0=  -5 dB | BER_sim=2.1276e-01 | BER_theory=2.1323e-01
+     Eb/N0=   0 dB | BER_sim=7.9100e-02 | BER_theory=7.8650e-02
+     Eb/N0=   5 dB | BER_sim=5.8000e-03 | BER_theory=5.9539e-03
+     Eb/N0=  10 dB | BER_sim=0.0000e+00 | BER_theory=3.8721e-06
+     Eb/N0=  15 dB | BER_sim=0.0000e+00 | BER_theory=9.1240e-16
+     Eb/N0=  20 dB | BER_sim=0.0000e+00 | BER_theory=1.0442e-45
+
+ part 8 final 
+  B=8 (Uniform), Eb/N0=0dB -> BER=7.8771e-02 -> results\chain_uniform_B8_nrz_EbN0_0dB.wav
+  B=8 (Mu-Law), Eb/N0=0dB -> BER=7.9243e-02 -> results\chain_mulaw_B8_nrz_EbN0_0dB.wav
+  B=8 (Uniform), Eb/N0=10dB -> BER=4.0317e-06 -> results\chain_uniform_B8_nrz_EbN0_10dB.wav
+  B=8 (Mu-Law), Eb/N0=10dB -> BER=2.0158e-06 -> results\chain_mulaw_B8_nrz_EbN0_10dB.wav
+  B=8 (Uniform), Eb/N0=20dB -> BER=0.0000e+00 -> results\chain_uniform_B8_nrz_EbN0_20dB.wav
+  B=8 (Mu-Law), Eb/N0=20dB -> BER=0.0000e+00 -> results\chain_mulaw_B8_nrz_EbN0_20dB.wav
+  B=4 (Uniform), Eb/N0=0dB -> BER=7.8669e-02 -> results\chain_uniform_B4_nrz_EbN0_0dB.wav
+  B=4 (Mu-Law), Eb/N0=0dB -> BER=7.8865e-02 -> results\chain_mulaw_B4_nrz_EbN0_0dB.wav
+  B=4 (Uniform), Eb/N0=10dB -> BER=4.0317e-06 -> results\chain_uniform_B4_nrz_EbN0_10dB.wav
+  B=4 (Mu-Law), Eb/N0=10dB -> BER=2.6878e-06 -> results\chain_mulaw_B4_nrz_EbN0_10dB.wav
+  B=4 (Uniform), Eb/N0=20dB -> BER=0.0000e+00 -> results\chain_uniform_B4_nrz_EbN0_20dB.wav
+  B=4 (Mu-Law), Eb/N0=20dB -> BER=0.0000e+00 -> results\chain_mulaw_B4_nrz_EbN0_20dB.wav
+  B=2 (Uniform), Eb/N0=0dB -> BER=7.8817e-02 -> results\chain_uniform_B2_nrz_EbN0_0dB.wav
+  B=2 (Mu-Law), Eb/N0=0dB -> BER=7.9306e-02 -> results\chain_mulaw_B2_nrz_EbN0_0dB.wav
+  B=2 (Uniform), Eb/N0=10dB -> BER=1.0751e-05 -> results\chain_uniform_B2_nrz_EbN0_10dB.wav
+  B=2 (Mu-Law), Eb/N0=10dB -> BER=8.0633e-06 -> results\chain_mulaw_B2_nrz_EbN0_10dB.wav
+  B=2 (Uniform), Eb/N0=20dB -> BER=0.0000e+00 -> results\chain_uniform_B2_nrz_EbN0_20dB.wav
+  B=2 (Mu-Law), Eb/N0=20dB -> BER=0.0000e+00 -> results\chain_mulaw_B2_nrz_EbN0_20dB.wav
