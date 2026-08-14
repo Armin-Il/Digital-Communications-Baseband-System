@@ -134,8 +134,8 @@ tempCodeRunnerFile.py
 # Ignore generated output directories
 results/
 outputs/
-results_phase2/
-
+results_phase2/*
+!results_phase2/*.png
 # Image files in Figures/ (linked in README) are not ignored by default.
 # Uncomment the lines below if you want to ignore all images globally except in Figures/:
 # *.png
