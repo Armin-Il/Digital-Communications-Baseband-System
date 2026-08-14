@@ -1,7 +1,7 @@
 import os
 import sys
 
-# tanzim encoding terminal
+# configure terminal encoding
 if sys.stdout.encoding != 'utf-8':
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -19,7 +19,7 @@ from scipy.io import wavfile
 RNG = np.random.default_rng(7)
 
 
-# tavabe paye riyazi va modulation
+# core math and modulation functions
 
 def q_function(x):
     return 0.5 * erfc(np.asarray(x, dtype=np.float64) / np.sqrt(2.0))
@@ -100,7 +100,7 @@ def modulate(bits, scheme):
         const = {v: p / norm for v, p in const.items()}
         return symbols, const
 
-    raise ValueError(f"tarh modulation nashenakhte : {scheme}")
+    raise ValueError(f"unrecognized modulation scheme: {scheme}")
 
 def demodulate(symbols, scheme):
     scheme = scheme.lower()
@@ -132,7 +132,7 @@ def carrier_recovery_costas(rx_symbols, known_pilot_symbols, scheme, get_constel
     const = get_constellation_fn(scheme)
     ref_pts = np.array(list(const.values())) if isinstance(const, dict) else np.asarray(const)
 
-    # 1. Takhmine daghighe otfe feragans az rooye Pilot ba Regression Khati
+    # 1. Precise frequency offset estimation from the pilot using linear regression
     if n_pilot >= 8:
         phase_diff = np.angle(rx_symbols[:n_pilot] * np.conj(known_pilot_symbols))
         phase_unwrapped = np.unwrap(phase_diff)
@@ -146,7 +146,7 @@ def carrier_recovery_costas(rx_symbols, known_pilot_symbols, scheme, get_constel
     n_all = np.arange(len(rx_symbols))
     rx_fc = rx_symbols * np.exp(-1j * (2 * np.pi * est_delta_f * n_all + initial_phase))
 
-    # 2. Costas Loop baraye radyabi peyvaste
+    # 2. Costas loop for continuous phase tracking
     phase_est = 0.0
     corrected = np.zeros_like(rx_fc)
     for i in range(len(rx_fc)):
@@ -271,16 +271,16 @@ def plot_constellation(scheme, out_path, noisy_symbols=None):
     plt.figure(figsize=(5.5, 5.5))
     if noisy_symbols is not None:
         plt.scatter(noisy_symbols.real, noisy_symbols.imag, s=4, alpha=0.3,
-                    color="gray", label="sambol daryafty noisy")
+                    color="gray", label="received noisy symbols")
     pts = np.array(list(const.values()))
-    plt.scatter(pts.real, pts.imag, s=60, color="crimson", zorder=5, label="noghate marja")
+    plt.scatter(pts.real, pts.imag, s=60, color="crimson", zorder=5, label="reference points")
     for v, p in const.items():
         label = format(v, f"0{k}b")
         plt.annotate(label, (p.real, p.imag), textcoords="offset points",
                      xytext=(6, 6), fontsize=7)
     plt.axhline(0, color="k", linewidth=0.5)
     plt.axvline(0, color="k", linewidth=0.5)
-    plt.title(f"soorat falaki - {scheme.upper()}")
+    plt.title(f"Constellation Diagram - {scheme.upper()}")
     plt.xlabel("I")
     plt.ylabel("Q")
     plt.axis("equal")
@@ -321,8 +321,8 @@ def plot_eye_diagram(wave, sps, out_path, title, n_windows=150, offset=0):
             continue
         plt.plot(t_axis, seg, color="steelblue", alpha=0.25, linewidth=0.8)
     plt.title(title)
-    plt.xlabel("zaman (t/T)")
-    plt.ylabel("domain")
+    plt.xlabel("time (t/T)")
+    plt.ylabel("amplitude")
     plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig(out_path, dpi=130)
@@ -339,7 +339,7 @@ def theoretical_ber(scheme, snr_db_list):
     elif scheme in ("64qam", "64qam_gray"):
         return (7 / 12) * q_function(np.sqrt((2 / 7) * snr_lin))
     else:
-        raise ValueError(f"tarh modulation poshtibani nemishe {scheme}")
+        raise ValueError(f"modulation scheme not supported: {scheme}")
 
 def run_ber_simulation(scheme, pulse_kind, snr_db_list, sps=8, n_data_symbols=4000, n_pilot=64, rng=RNG):
     k = bits_per_symbol(scheme)
@@ -364,7 +364,7 @@ def run_ber_simulation(scheme, pulse_kind, snr_db_list, sps=8, n_data_symbols=40
             delta_f_normalized=0.005, phi0=np.pi / 6, rng=rng
         )
 
-        # bedone Carrier Recovery
+        # without carrier recovery
         bits_no_rec, _ = rx_pipeline(
             rx_channel, pulse, scheme, sps, len(symbols_tx), pilot_symbols=None, do_carrier_recovery=False
         )
@@ -373,7 +373,7 @@ def run_ber_simulation(scheme, pulse_kind, snr_db_list, sps=8, n_data_symbols=40
         err1 = np.mean(bits_tx[:min_len1] != data_bits_no[:min_len1])
         ber_no_rec.append(err1)
 
-        # ba Carrier Recovery
+        # with carrier recovery
         bits_with_rec, _ = rx_pipeline(
             rx_channel, pulse, scheme, sps, len(symbols_tx), pilot_symbols=pilot_symbols, do_carrier_recovery=True
         )
@@ -388,11 +388,11 @@ def plot_ber_curves(scheme, snr_db_list, ber_no_rec, ber_with_rec, out_path):
     ber_theo = theoretical_ber(scheme, snr_db_list)
 
     plt.figure(figsize=(7, 5))
-    plt.semilogy(snr_db_list, ber_no_rec, 'r--o', label="shabih sazi (bedone Carrier Recovery)")
-    plt.semilogy(snr_db_list, ber_with_rec, 'g-s', label="shabih sazi (ba Carrier Recovery)")
-    plt.semilogy(snr_db_list, ber_theo, 'k:', linewidth=2, label="theory (channel AWGN ideal)")
+    plt.semilogy(snr_db_list, ber_no_rec, 'r--o', label="simulation (without carrier recovery)")
+    plt.semilogy(snr_db_list, ber_with_rec, 'g-s', label="simulation (with carrier recovery)")
+    plt.semilogy(snr_db_list, ber_theo, 'k:', linewidth=2, label="theory (ideal AWGN channel)")
 
-    plt.title(f"nerkh khataye bit (BER) bar hasbe SNR - {scheme.upper()}")
+    plt.title(f"Bit Error Rate (BER) vs SNR - {scheme.upper()}")
     plt.xlabel("SNR (dB)")
     plt.ylabel("Bit Error Rate (BER)")
     plt.ylim(1e-5, 1.0)
@@ -431,10 +431,10 @@ def plot_adaptive_throughput(snr_db_list, out_path):
 
     plt.figure(figsize=(7.5, 5))
     for s in schemes:
-        plt.plot(snr_db_list, throughput_fixed[s], '--', label=f"sabet {s.upper()}")
+        plt.plot(snr_db_list, throughput_fixed[s], '--', label=f"fixed {s.upper()}")
 
-    plt.plot(snr_db_list, throughput_adaptive, 'k-o', linewidth=2.5, label="modulation tatbighi (Adaptive)")
-    plt.title("nerkh bazdehi data ha (Throughput vs SNR)")
+    plt.plot(snr_db_list, throughput_adaptive, 'k-o', linewidth=2.5, label="adaptive modulation")
+    plt.title("Data Throughput vs SNR")
     plt.xlabel("SNR (dB)")
     plt.ylabel("Throughput (bits/symbol)")
     plt.grid(alpha=0.3)
@@ -468,7 +468,7 @@ def bitstream_to_audio(bits, B=8):
 def run_full_phase2_pipeline(out_dir="results_phase2"):
     os.makedirs(out_dir, exist_ok=True)
     print("=" * 60)
-    print(" shoro ejraye code project  Armin Ilat 403249010")
+    print(" Starting project code execution - Armin Ilat 403249010")
     print("=" * 60)
 
     audio_filename = "Armin Ilat speech.wav"
@@ -478,16 +478,16 @@ def run_full_phase2_pipeline(out_dir="results_phase2"):
             audio_orig = audio_raw.astype(np.float64) / 32768.0
         else:
             audio_orig = audio_raw.astype(np.float64)
-        print(f"[+] file soti vaghei '{audio_filename}' ba nerkh {fs}Hz ba movafaghiat khondim")
+        print(f"[+] Successfully read real audio file '{audio_filename}' at {fs}Hz")
     else:
         fs = 8000
         duration = 2.0
         t = np.linspace(0, duration, int(fs * duration))
         audio_orig = 0.6 * np.sin(2 * np.pi * 300 * t) + 0.3 * np.sin(2 * np.pi * 800 * t)
-        print(f"[!] file nayaftam '{audio_filename}' signal sakhtegi sakhtam")
+        print(f"[!] File '{audio_filename}' not found, generated a synthetic signal instead")
 
     tx_bits = audio_to_bitstream(audio_orig, B=8)
-    print(f"[+] tedad kol bit haye estekhraj shode az voice {len(tx_bits)} bit")
+    print(f"[+] Total bits extracted from the voice signal: {len(tx_bits)} bits")
 
     test_snr = 15.0
     scheme = select_adaptive_scheme(test_snr)
@@ -495,7 +495,7 @@ def run_full_phase2_pipeline(out_dir="results_phase2"):
     pulse_kind = "rrc"
     N_PILOT = 64
 
-    print(f"[+] bar asase SNR={test_snr}dB, modulation entekhab shode : {scheme.upper()}")
+    print(f"[+] Based on SNR={test_snr}dB, selected modulation: {scheme.upper()}")
 
     pilot_bits, pilot_symbols = make_pilot_symbols(scheme, N_PILOT, modulate)
     data_symbols, _ = modulate(tx_bits, scheme)
@@ -507,7 +507,7 @@ def run_full_phase2_pipeline(out_dir="results_phase2"):
     tx_upsampled[::sps] = symbols_tx
     tx_signal = np.convolve(tx_upsampled, pulse, mode="full")
 
-    print("[+] ersal az channel (Freq Offset + Phase Offset + AWGN)...")
+    print("[+] Transmitting through channel (Freq Offset + Phase Offset + AWGN)...")
     rx_channel, _ = apply_channel(
         tx_signal, sps=sps, snr_db=test_snr,
         delta_f_normalized=0.005, phi0=np.pi / 6, rng=RNG
@@ -523,15 +523,15 @@ def run_full_phase2_pipeline(out_dir="results_phase2"):
     min_len = min(len(tx_bits), len(rx_data_bits))
     bit_errors = np.sum(tx_bits[:min_len] != rx_data_bits[:min_len])
     ber = bit_errors / min_len
-    print(f"[+] tahlil bit ha : {bit_errors} khata dar {min_len} bit | BER = {ber:.6f}")
+    print(f"[+] Bit analysis: {bit_errors} errors in {min_len} bits | BER = {ber:.6f}")
 
     audio_rec = bitstream_to_audio(rx_data_bits[:min_len], B=8)
     out_audio_path = os.path.join(out_dir, "reconstructed_phase2.wav")
     audio_rec_int16 = np.int16(audio_rec * 32767)
     wavfile.write(out_audio_path, fs, audio_rec_int16)
-    print(f"[+] file souti bazsazi shode '{out_audio_path}' zakhire shod")
+    print(f"[+] Reconstructed audio file '{out_audio_path}' saved")
 
-    print("\n[+] dar hal zakhire khoroji ha hastam ..")
+    print("\n[+] Saving outputs ..")
     plot_constellation(scheme, os.path.join(out_dir, f"constellation_{scheme}.png"), rx_symbols_rec[N_PILOT:N_PILOT+2000])
 
     eye_data = build_eye_diagram_data(scheme, pulse_kind, sps=sps, r=0.35, span=12, snr_db=test_snr)
@@ -543,7 +543,7 @@ def run_full_phase2_pipeline(out_dir="results_phase2"):
 
     plot_adaptive_throughput(np.arange(0, 26, 1), os.path.join(out_dir, "adaptive_throughput.png"))
 
-    print(f"\n[+] kheili ham awli hame khoroji ha dar poshe '{out_dir}' zakhire shodan.")
+    print(f"\n[+] All done, all outputs saved in the '{out_dir}' folder.")
     print("=" * 60)
 
 if __name__ == "__main__":
